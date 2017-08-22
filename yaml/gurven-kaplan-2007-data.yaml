@@ -1,0 +1,325 @@
+
+
+
+
+- name: "horticulturalist average"
+  category: "horticulturalists"
+  tfr: 6.2 # same as forager-horticulturalist
+  l15: 0.67
+  source: "Gurven, Kaplan (2007), pp. 347"
+- name: "hunter/gatherer average"
+  category: "foragers"
+  tfr: 5.7 
+  l15: 0.41
+  source: "Gurven, Kaplan (2007), pp. 347"
+- category: "forager-horticulturalist"
+  tfr: 6.2 
+  l15: 0.67
+  source: "Gurven, Kaplan (2007), pp. 347"
+- name: "pastoralist average"
+  category: "pastoralist"
+  tfr: 5.6 
+  l15: 0.72
+  source: "Gurven, Kaplan (2007), pp. 347"
+
+# horticulturalists
+- category: "horticulturalists"
+  tfr: 10
+  l15: 0.62
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 8.4
+  l15: 0.786
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 8.2
+  l15: 0.82
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 6.8
+  l15: 0.86
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 6.2
+  l15: 0.48
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.7
+  l15: 0.525
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 6.4
+  l15: 0.57
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.4
+  l15: 0.80
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.5
+  l15: 0.79
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 7.6
+  l15: 0.60
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 6.1
+  l15: 0.61
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.3
+  l15: 0.61
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 3.6
+  l15: 0.64
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.1
+  l15: 0.634
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 4.7
+  l15: 0.652
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 7.4
+  l15: 0.75
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 6.6
+  l15: 0.75
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 3.5
+  l15: 0.68
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 4.3
+  l15: 0.687
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 5.6
+  l15: 0.703
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 8.2
+  l15: 0.70
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "horticulturalists"
+  tfr: 7.0
+  l15: 0.71
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+
+
+
+# foragers
+- category: "foragers"
+  tfr: 8.0
+  l15: 0.66
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 7.0
+  l15: 0.51
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 5.8
+  l15: 0.51
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 6.2
+  l15: 0.55
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 6.0
+  l15: 0.55
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 5.5
+  l15: 0.44
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 5.1
+  l15: 0.54
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 4.7
+  l15: 0.58
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 3.9
+  l15: 0.48
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "foragers"
+  tfr: 3.7
+  l15: 0.55
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+
+# sedentary foragers
+- category: "sedentary foragers"
+  tfr: 6.6
+  l15: 0.8
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "sedentary foragers"
+  tfr: 4.7
+  l15: 0.595
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "sedentary foragers"
+  tfr: 4.4
+  l15: 0.7
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+
+# pastoralists
+- category: "pastoralist"
+  tfr: 7.2
+  l15: 0.62
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "pastoralist"
+  tfr: 6.3
+  l15: 0.67
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "pastoralist"
+  tfr: 6.3
+  l15: 0.86
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "pastoralist"
+  tfr: 5.1
+  l15: 0.69
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "pastoralist"
+  tfr: 3.15
+  l15: 0.742
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+
+# forager-horticulturalist
+- category: "forager-horticulturalist"
+  tfr: 8.5
+  l15: 0.564
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 7.9
+  l15: 0.715
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 7.65
+  l15: 0.423
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 6.56
+  l15: 0.74
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 6.2
+  l15: 0.455
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.3
+  l15: 0.38
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.9
+  l15: 0.65
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.0
+  l15: 0.71
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 4.6
+  l15: 0.71
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 6.0
+  l15: 0.86
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.1
+  l15: 0.81
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.5
+  l15: 0.73
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 8.5
+  l15: 0.824
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 5.5
+  l15: 0.73
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+- category: "forager-horticulturalist"
+  tfr: 4.75
+  l15: 0.74
+  source: "Gurven, Kaplan (2007), Figure 9, page 347"
+
+# Forag/Hort
+- name: Yanomamo Mucaj
+  category: "forager-horticulturalist"
+  e0: 39
+  l15: 0.69
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Yanomamo
+  category: "forager-horticulturalist"
+  e0: 21
+  l15: 0.44
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Tsimane
+  category: "forager-horticulturalist"
+  e0: 42
+  l15: 0.73
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Gainj
+  category: "forager-horticulturalist"
+  e0: 30
+  l15: 0.67
+  source: "Gurven, Kaplan (2007), Table 2"
+
+# Acculturage H/G 
+- name: "!Kung 1963-74"
+  category: "acculturated forager"
+  e0: 50
+  l15: 0.76
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Ache reservation
+  category: "acculturated forager"
+  e0: 50
+  l15: 0.74
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Northern Territory Aborigines
+  category: "acculturated forager"
+  e0: 49
+  l15: 0.77
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Hiwi post-1960
+  category: "acculturated forager"
+  e0: 28
+  l15: 0.48
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Agta transition
+  category: "acculturated forager"
+  e0: 28
+  l15: 0.52
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Agta peasant
+  category: "acculturated forager"
+  e0: 21
+  l15: 0.44
+  source: "Gurven, Kaplan (2007), Table 2"
+  
+- name: Sweden 1751-59
+  category: "agriculturalist"
+  e0: 34
+  l15: 0.60
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Wild Chimps
+  category: "nonhuman primate"
+  e0: 13
+  l15: 0.37
+  source: "Gurven, Kaplan (2007), Table 2"
+- name: Captive chimps
+  category: "nonhuman primate"
+  e0: 26
+  l15: 0.64
+  source: "Gurven, Kaplan (2007), Table 2"

@@ -56,4 +56,9 @@ Thumbs.db
 *.html
 *.json
 
-/csv/*
+*.csv
+
+/data/*
+/notes/*
+/figures/*
+

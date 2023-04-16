@@ -1,80 +1,72 @@
 
 source("project_support.R")
 
-if (!dir.exists("data/ourworldindata")) {
+# downloaded in 2017 (url's are dead)
 
-  dir_init("./data/ourworldindata")
+# https://ourworldindata.org/grapher/natural-population-growth
+# https://ourworldindata.org/grapher/life-expectancy
+# https://ourworldindata.org/grapher/children-born-per-woman
 
-  cat("downloading data\n")
-  download_file("https://ourworldindata.org/grapher/total-fertility-rate.csv", "data/ourworldindata/total-fertility-rate.csv")
-  download_file("https://ourworldindata.org/grapher/life-expectancy.csv", "data/ourworldindata/life-expectancy.csv")
-  download_file("https://ourworldindata.org/grapher/natural-population-growth.csv", "data/ourworldindata/natural-population-growth.csv")
-
-  # not used: children-per-woman-UN.csv
-  # not used: population-by-country.csv
-
-}
-
+# (for TFR, originally used https://ourworldindata.org/grapher/total-fertility-rate but link is dead
+# not used: children-per-woman-UN
 
 cat("process data\n")
 
-
-
 cat("life expectancy at birth by country and year\n")
 
-life <- read.csv("data/ourworldindata/life-expectancy.csv")
+life <- read.csv("data/ourworldindata2023/life-expectancy.csv")
 
-stopifnot(nrow(life) == 14177)
-stopifnot(length(unique(life$Country.code)) == 199)
-stopifnot(length(unique(life$Entity)) == 202)
-# two kinds of country codes
+stopifnot(nrow(life) == 20449) # up from 14177 in 2017
+# however, a good chunk of these are for regional aggregates and should be excluded
+stopifnot(length(unique(life$Code)) == 238) # up from 199 in 2017
+stopifnot(length(unique(life$Entity)) == 256) # up from 202 in 2017
 
-stopifnot(range(life$Year) == c(1543, 2012))
+stopifnot(range(life$Year) == c(1543, 2021))
 
-life <- rename(life, e0 = `Life.Expectancy.at.Birth..both.genders.`)
-life <- mutate(life, key = paste(Country.code, Year))
+life <- rename(life, e0 = `Life.expectancy.at.birth..historical.`)
+life <- mutate(life, key = paste(Code, Year))
 
 
 
 cat("population growth by country and year\n")
 
-growth <- read.csv("data/ourworldindata/natural-population-growth.csv")
+growth <- read.csv("data/ourworldindata2023/natural-population-growth.csv")
 
-stopifnot(nrow(growth) == 3120)
-stopifnot(length(unique(growth$Country.code)) == 204)
-stopifnot(range(growth$Year) == c(1955, 2015))
+stopifnot(nrow(growth) == 38505) # up from 3120 in 2017, wow
+stopifnot(length(unique(growth$Code)) == 238) # up from 204 in 2017
+stopifnot(range(growth$Year) == c(1950, 2100))
 
-growth <- rename(growth, gr = `Rate.of.Natural.Population.Increase...UN.2015`)
-growth <- mutate(growth, key = paste(Country.code, Year))
+growth <- rename(growth, gr = `Natural.growth.rate...Sex..all...Age..all...Variant..estimates`)
+growth <- mutate(growth, key = paste(Code, Year))
 
 
 
 cat("total fertility rate by country and year\n")
 
-tfr <- read.csv("data/ourworldindata/total-fertility-rate.csv")
+tfr <- read.csv("data/ourworldindata2023/children-born-per-woman.csv")
 
-stopifnot(nrow(tfr) == 60673)
-stopifnot(length(unique(tfr$Country.code)) == 202)
-stopifnot(range(tfr$Year) == c(1541, 2099))
+stopifnot(nrow(tfr) == 22185) # originally 60673 in 2017
+stopifnot(length(unique(tfr$Code)) == 200)
+stopifnot(range(tfr$Year) == c(1541, 2022)) # originally extrapolated to 2099 in 2017
 
-tfr <- rename(tfr, tfr = `Gapminder..Fertility.v6.`)
-tfr <- mutate(tfr, key = paste(Country.code, Year))
+tfr <- rename(tfr, tfr = `Fertility.rate..Select.Gapminder..v12...2017.`)
+tfr <- mutate(tfr, key = paste(Code, Year))
 
 
 
 cat("create analysis dataframe\n")
 
 life |> 
+  filter(Code != "") |>
   inner_join(select(tfr, tfr, key), by = "key") |>
   left_join(select(growth, gr, key), by = "key") |>
   select(-key) -> d 
 
-stopifnot(nrow(d) == 13881)
-stopifnot(sum(is.na(d$gr)) == 11687)
-# we are missing growth rates for most entries but that's not limiting
+stopifnot(nrow(d) == 89966) # originally 13881 in 2017
+stopifnot(sum(is.na(d$gr)) == 1918) # originally 11687 in 2017
 
-stopifnot(range(d$Year) == c(1543, 2012))
-stopifnot(length(unique(d$Country.code)) == 197)
+stopifnot(range(d$Year) == c(1543, 2021))
+stopifnot(length(unique(d$Code)) == 198)
 
 write.csv(d, "data/nation_year_demographics.csv", row.names = FALSE)
 

@@ -3,49 +3,63 @@ source("project_support.R")
 
 dir_init("./figures")
 
-d <- read.csv("analysis_data.csv")
+# load from polygon data
+foragers <- read.csv("data/forager-polygon.csv")
+pastoralists <- read.csv("data/pastoralist-polygon.csv")
+hort <- read.csv("data/horticulturalist-polygon.csv")
 
-foragers <- read.csv("./data/forager-polygon.csv")
-pastoralists <- read.csv("./data/pastoralist-polygon.csv")
-hort <- read.csv("./data/horticulturalist-polygon.csv")
+# load country-year stats from ourworldindata
+d <- read.csv("nation_year_demographics.csv")
 
 d$my_col <- data_gradient(d$gr, my.start=0, my.stop=3.5)
 
 d$my_col[is.na(d$gr)] <- gray(0.8)
 
-
 # together these caluclate gr exactly?
 
-m1 <- lm(d$gr ~ d$ln_tfr + d$ln_le) # pretty close! R^2 = 0.88
+#  growth = a + b log(tfr) + c log(le)
 
-d$x <- coef(m1)[1] + coef(m1)[2]*d$ln_tfr + coef(m1)[3]*d$ln_le
+d$ln_tfr <- log(d$tfr)
+d$ln_e0 <- log(d$e0)
 
-plot(d$x, d$gr, xlab = "predicted", ylab = "actual growth rate")
+m1 <- lm(d$gr ~ d$ln_tfr + d$ln_e0) # pretty close! R^2 = 0.88
+
+d$x <- coef(m1)[1] + coef(m1)[2]*d$ln_tfr + coef(m1)[3]*d$ln_e0
+
+png("figures/growth_predicted_actual.png", res = 300, height = 6, width = 6, units = "in")
+plot(d$x, d$gr, xlab = "predicted growth", ylab = "actual growth rate", main = "gr ~ ln(tfr) + ln(e0)")
 abline(0, 1, lty = 2, col = "red")
 
-# r = a + b*ln_le + c*ln_tfr
-# -c*ln_tfr + r = a + b*ln_le 
-# -c*ln_tfr = a + b*ln_le - r
+text(-0.6, 3.7, paste0("R^2 = ", round(summary(m1)$r.squared, 2)))
 
-# exp(ln_tfr) = exp(( a + b*ln_le - r)/(-c))
+dev.off()
 
-# exp(ln_tfr) = exp((-10.96 + 2.36*ln_le - r)/2.39)
+# r = a + b*ln_e0 + c*ln_tfr
+# -c*ln_tfr + r = a + b*ln_e0 
+# -c*ln_tfr = a + b*ln_e0 - r
+
+# exp(ln_tfr) = exp(( a + b*ln_e0 - r)/(-c))
+
+# exp(ln_tfr) = exp((-10.96 + 2.36*ln_e0 - r)/2.39)
 
 # TFR \approx \exp\bigg(\frac{a + b \times \ln(e_0) - R}{c}\bigg)
 # https://viereck.ch/latex-to-svg/
 
-growth_isocline <- function(x, r) exp( (coef(m1)[1] + coef(m1)["d$ln_le"] * log(x) - r) / -coef(m1)["d$ln_tfr"] )
+growth_isocline <- function(x, r) exp( (coef(m1)[1] + coef(m1)["d$ln_e0"] * log(x) - r) / -coef(m1)["d$ln_tfr"] )
 
 d$my_col <- data_gradient(d$x, my.start=0, my.stop=3, colors=orangered )
 
 
 cat("create figures\n")
 
-pdf('./figures/test.pdf', height=15/2.54, width=21/2.54)
+
+cat("first test\n")
+
+pdf("figures/test.pdf", height=15/2.54, width=21/2.54)
 
 tar <- 1:nrow(d)
 
-plot(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), 
+plot(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), 
   col=col_alpha(d$my_col[tar], 0.3), 
   pch=16, frame.plot=FALSE, cex=1, ylim=c(1,9), xlim=c(20,80), 
   xlab="Life expectancy at birth", 
@@ -92,7 +106,7 @@ asia <- c("Japan",
 s_america <- c("Bolivia", "Brazil")
 
 tar <- which(d$Year == 2000)
-points(d$le[tar], d$tfr[tar], pch=20)
+points(d$e0[tar], d$tfr[tar], pch=20)
 
 # text
 
@@ -113,7 +127,10 @@ text(56.78387, 3.349255, "world nations,\nyear 2000", font=2)
 dev.off()
 
 
-pdf('./figures/test5all.pdf', height = 1 * 4.5, width = 2.0 * 4.5) 
+cat("test5 all\n")
+
+
+pdf("figures/test5all.pdf", height = 1 * 4.5, width = 2.0 * 4.5) 
 
 par(mfrow=c(2,3))
 par(mar=c(2.2,2.2,1.2,1.2))
@@ -122,7 +139,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -131,7 +148,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -152,23 +169,23 @@ par(mar=c(2.2,2.2,1.2,1.2))
   col_1880 <- cyan_to_rose[2]
 
   tar <- which(d$Year == 1880)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(col_1880, 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(col_1880, 0.2))
 
   tar <- which(d$Year == 1880 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=col_1880, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=col_1880, pos=1)
 
   tar <- which(d$Year == 1880 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
-  text(d$le[tar], d$tfr[tar], label="UK", col=col_1880, pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=col_1880, pos=4)
 
   tar <- which(d$Year == 1880 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=col_1880, pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=col_1880, pos=4)
 
   tar <- which(d$Year == 1880 & d$Country.code=="FRA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
-  text(d$le[tar], d$tfr[tar], label="France", col=col_1880, pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1880, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="France", col=col_1880, pos=4)
 
 
   # text
@@ -196,7 +213,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -205,7 +222,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -225,31 +242,31 @@ par(mar=c(2.2,2.2,1.2,1.2))
   col_1905 <- rose[3]
 
   tar <- which(d$Year == 1905)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(col_1905, 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(col_1905, 0.2))
 
   tar <- which(d$Year == 1905 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="USA", col=col_1905, pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=col_1905, pos=2)
 
   tar <- which(d$Year == 1905 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=col_1905, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=col_1905, pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="India", col=col_1905, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="India", col=col_1905, pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=col_1905, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=col_1905, pos=3)
 
   tar <- which(d$Year == 1905 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=col_1905, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=col_1905, pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
-  text(d$le[tar], d$tfr[tar], label="UK", col=col_1905, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1905, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=col_1905, pos=1)
 
 
   # text
@@ -275,7 +292,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -284,7 +301,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -304,31 +321,31 @@ par(mar=c(2.2,2.2,1.2,1.2))
   col_1930 <- rose[3]
 
   tar <- which(d$Year == 1930)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(col_1930, 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(col_1930, 0.2))
 
   tar <- which(d$Year == 1930 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="USA", col=col_1930, pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=col_1930, pos=2)
 
   tar <- which(d$Year == 1927 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=col_1930, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=col_1930, pos=1)
 
   tar <- which(d$Year == 1931 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="India", col=col_1930, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="India", col=col_1930, pos=1)
 
   tar <- which(d$Year == 1930 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=col_1930, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=col_1930, pos=3)
 
   tar <- which(d$Year == 1930 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=col_1930, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=col_1930, pos=1)
 
   tar <- which(d$Year == 1930 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
-  text(d$le[tar], d$tfr[tar], label="UK", col=col_1930, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1930, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=col_1930, pos=1)
 
 
   # text
@@ -355,7 +372,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -364,7 +381,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -386,59 +403,59 @@ par(mar=c(2.2,2.2,1.2,1.2))
   col_1955 <- aquamarine[5]
 
   tar <- which(d$Year == 1955)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(col_1955, 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(col_1955, 0.2))
 
   tar <- which(d$Year == 1955 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="USA", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="CHN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="China", col=col_1955, pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="China", col=col_1955, pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="BOL")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Bolivia", col=col_1955, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Bolivia", col=col_1955, pos=3)
 
   tar <- which(d$Year == 1955 & d$Country.code=="TZA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Tanzania", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Tanzania", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="PER")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Peru", col=col_1955, pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Peru", col=col_1955, pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="India", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="India", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=col_1955, pos=1)
 
   # tar <- which(d$Year == 1955 & d$Country.code=="MAR")
-  # points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  # text(d$le[tar], d$tfr[tar], label="Morocco", col=col_1955, pos=1)
+  # points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  # text(d$e0[tar], d$tfr[tar], label="Morocco", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="NAM")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Namibia", col=col_1955, pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Namibia", col=col_1955, pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="FJI")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Fiji", col=col_1955, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Fiji", col=col_1955, pos=3)
 
   tar <- which(d$Year == 1955 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=col_1955, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=col_1955, pos=3)
 
   tar <- which(d$Year == 1955 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
-  text(d$le[tar], d$tfr[tar], label="UK", col=col_1955, pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(col_1955, 0.5))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=col_1955, pos=3)
 
 
   # text
@@ -463,9 +480,13 @@ dev.off()
 
 
 
+
+
+cat("test 6\n")
+
 d$my_col <- data_gradient(d$x, my.start=0, my.stop=3, colors=cyan_to_rose )
 
-pdf('./figures/test6.pdf', height = 1 * 3.5, width = 2.0 * 3.5) 
+pdf("figures/test6.pdf", height = 1 * 3.5, width = 2.0 * 3.5) 
 
 par(mfrow=c(2,3))
 par(mar=c(2.2,2.2,1.2,1.2))
@@ -474,7 +495,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -483,7 +504,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -503,23 +524,23 @@ par(mar=c(2.2,2.2,1.2,1.2))
   named_alpha <- 0.9
 
   tar <- which(d$Year == 1880)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.6))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.6))
 
   tar <- which(d$Year == 1880 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1880 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1880 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1880 & d$Country.code=="FRA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="France", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="France", col=d$my_col[tar], pos=4)
 
 
   # text
@@ -548,7 +569,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -557,7 +578,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -574,31 +595,31 @@ par(mar=c(2.2,2.2,1.2,1.2))
   show_all <- TRUE
 
   tar <- which(d$Year == 1905)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
 
   tar <- which(d$Year == 1905 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 1905 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1905 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1905 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
 
 
   # text
@@ -625,7 +646,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -634,7 +655,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -652,31 +673,31 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
 
   tar <- which(d$Year == 1930)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
 
   tar <- which(d$Year == 1930 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 1927 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1931 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1930 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1930 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1930 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
 
 
   # text
@@ -704,7 +725,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -713,7 +734,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -731,59 +752,59 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
 
   tar <- which(d$Year == 1955)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
 
   tar <- which(d$Year == 1955 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1955 & d$Country.code=="CHN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="BOL")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 1955 & d$Country.code=="TZA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1955 & d$Country.code=="PER")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1955 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
 
   # tar <- which(d$Year == 1955 & d$Country.code=="MAR")
-  # points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  # text(d$le[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
+  # points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  # text(d$e0[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="NAM")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1955 & d$Country.code=="FJI")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1955 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1955 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=1)
 
 
   # text
@@ -813,7 +834,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -822,7 +843,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -840,59 +861,59 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
 
   tar <- which(d$Year == 1980)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col.alpha(d$my_col[tar], 0.2))
 
   tar <- which(d$Year == 1980 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1980 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1980 & d$Country.code=="CHN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 1980 & d$Country.code=="BOL")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1980 & d$Country.code=="TZA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 1980 & d$Country.code=="PER")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1980 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1980 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=1)
 
   # tar <- which(d$Year == 1980 & d$Country.code=="MAR")
-  # points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  # text(d$le[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
+  # points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  # text(d$e0[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 1980 & d$Country.code=="NAM")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1980 & d$Country.code=="FJI")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=4)
 
   tar <- which(d$Year == 1980 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 1980 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=3)
 
 
   # text
@@ -922,7 +943,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
   tar <- 1:nrow(d)
 
-  plot(d$le, d$tfr, col=NA, frame.plot=FALSE, 
+  plot(d$e0, d$tfr, col=NA, frame.plot=FALSE, 
     ylim=c(1,9), xlim=c(20,85), 
     xlab="Life expectancy at birth", 
     ylab="Number of children per woman", las=1, axes=FALSE,
@@ -931,7 +952,7 @@ par(mar=c(2.2,2.2,1.2,1.2))
   # curve(growth_isocline(x, -1), from=0, to=100, ylim=c(0, 8), add=TRUE, lty=2, col=curve_col)
 
   # tar <- 1:nrow(d)
-  # points(jitter(d$le[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
+  # points(jitter(d$e0[tar], amount=0.1), jitter(d$tfr[tar], amount=0.1), pch=16, col=col_alpha("gray", 0.3))
 
 
   polygon(hort$x, hort$y, border=NA, col=col_alpha(gray(0.8), 0.4) )
@@ -950,59 +971,59 @@ par(mar=c(2.2,2.2,1.2,1.2))
 
 
   tar <- which(d$Year == 2005)
-  if(show_all) points(d$le[tar], d$tfr[tar], pch=16, col=col_alpha(d$my_col[tar], 0.2))
+  if(show_all) points(d$e0[tar], d$tfr[tar], pch=16, col=col_alpha(d$my_col[tar], 0.2))
 
   tar <- which(d$Year == 2005 & d$Country.code=="USA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="USA", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 2005 & d$Country.code=="JPN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Japan", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 2005 & d$Country.code=="CHN")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="China", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 2005 & d$Country.code=="BOL")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Bolivia", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 2005 & d$Country.code=="TZA")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Tanzania", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 2005 & d$Country.code=="PER")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Peru", col=d$my_col[tar], pos=3)
 
   tar <- which(d$Year == 2005 & d$Country.code=="IND")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="India", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 2005 & d$Country.code=="SWE")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Sweden", col=d$my_col[tar], pos=4)
 
   # tar <- which(d$Year == 2005 & d$Country.code=="MAR")
-  # points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  # text(d$le[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
+  # points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  # text(d$e0[tar], d$tfr[tar], label="Morocco", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 2005 & d$Country.code=="NAM")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=2)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Namibia", col=d$my_col[tar], pos=2)
 
   tar <- which(d$Year == 2005 & d$Country.code=="FJI")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Fiji", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 2005 & d$Country.code=="CUB")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="Cuba", col=d$my_col[tar], pos=1)
 
   tar <- which(d$Year == 2005 & d$Country.code=="GBR")
-  points(d$le[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
-  text(d$le[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=3)
+  points(d$e0[tar], d$tfr[tar], pch=named_pch, col=col_alpha(d$my_col[tar], named_alpha))
+  text(d$e0[tar], d$tfr[tar], label="UK", col=d$my_col[tar], pos=3)
 
 
 

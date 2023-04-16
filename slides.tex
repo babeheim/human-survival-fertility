@@ -1,0 +1,154 @@
+\documentclass[10pt,xcolor=x11names,dvipsnames]{beamer}
+
+\usecolortheme{default}
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\setbeamertemplate{navigation symbols}{} % suppress the ugly clickable nav buttons on the bottom of each slide
+
+% \includeonlyframes{myTitle}
+
+\usepackage{mathpazo} % URW Palladio, from Palatino
+\usepackage{microtype} % cleans up the kerning and hypenation
+
+\usefonttheme{serif} % necessary to activate the Palatino fonts
+
+\usepackage{tikz} % make sure this comes late!
+
+\title{An Ecological Energetics Approach to the Industrial Revolution, 1800-2023}
+\author{Bret Beheim}
+\date{EHBEA\\19 April 2023}
+
+\begin{document}
+
+\begin{frame}[label=myTitle]
+  \titlepage 
+\end{frame}
+
+\begin{frame} 
+  \centering
+  \begin{figure}
+    \resizebox{0.9\textwidth}{!}{
+      \includegraphics{assets/pequis.png}
+    }
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \centering
+      \begin{figure}
+        \resizebox{0.9\textwidth}{!}{
+          \includegraphics{assets/EnergyFlows1.pdf}
+        }
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[at=(current page.center)] {
+      \resizebox{1.0\textwidth}{!}{
+        \includegraphics{assets/EnergyFlows2.pdf}
+      }
+    };
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[at=(current page.center)] {
+      \resizebox{1.0\textwidth}{!}{
+        \includegraphics{assets/EnergyFlows3.pdf}
+      }
+    };
+  \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame} 
+  \centering
+  \begin{figure}
+    \resizebox{0.9\textwidth}{!}{
+      \includegraphics{assets/energy_whales.png}
+    }
+  \end{figure}
+\end{frame}
+
+\begin{frame} 
+  \centering
+  \begin{figure}
+    \resizebox{1.0\textwidth}{!}{
+      \includegraphics{assets/food_production.png}
+    }
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[at=(current page.center)] {
+      \resizebox{1.0\textwidth}{!}{
+        \input{figures/production_vitals.tex}
+      }
+    };
+  \end{tikzpicture}
+\end{frame}
+
+% 171 slides in total, but take forever to render
+% \foreach \x in {1,2,...,20} {%
+%   \begin{frame}{}
+%     \begin{tikzpicture}[remember picture,overlay]
+%       \node[at=(current page.center)] {
+%         \resizebox{1.0\textwidth}{!}{
+%           \input{figures/ourworldindata/frame\x.tex}
+%         }
+%       };
+%     \end{tikzpicture}
+%   \end{frame}%
+% }
+
+\foreach \x in {150,151,152,...,171} {%
+  \begin{frame}{}
+    \begin{tikzpicture}[remember picture,overlay]
+      \node[at=(current page.center)] {
+        \resizebox{1.0\textwidth}{!}{
+          \input{figures/ourworldindata/frame\x.tex}
+        }
+      };
+    \end{tikzpicture}
+  \end{frame}%
+}
+
+
+\begin{frame}[label=acknowledgements]
+  \frametitle{Thank you!}
+  Acknowledgements
+  \begin{itemize}
+    \item EHBEA
+    \item HBEC @ MPI-EVA
+  \end{itemize}
+
+  Github Resources
+  \begin{itemize}
+    \item R package: \texttt{babeheim/kaya}
+  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}[label=fit]
+  \begin{tikzpicture}[remember picture,overlay]
+    \node[at=(current page.center)] {
+      \resizebox{0.8\textwidth}{!}{
+        \includegraphics{figures/growth_predicted_actual.png}
+      }
+    };
+  \end{tikzpicture}
+\end{frame}
+
+
+\end{document} 
